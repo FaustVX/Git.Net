@@ -17,5 +17,16 @@ namespace Git.Net.Test
         [TestMethod]
         public void GitInit()
             => Prepare(() => Git.Init());
+
+        [TestMethod]
+        public void GitClone()
+            => Prepare(() =>
+            {
+                Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false);
+                System.Environment.CurrentDirectory = @"./Git.Net";
+                System.Console.Out.WriteLine(Git.GetLastCommit() ?? "null");
+                Assert.IsNotNull(Git.GetLastCommit());
+                Git.AddTag("test");
+            });
     }
 }

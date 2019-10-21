@@ -1,6 +1,9 @@
 name: publishNugetPackage
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+    - 'Git.Net.Test/**'
 
 jobs:
   publish:
@@ -17,5 +20,5 @@ jobs:
         nuget setApiKey ${{ secrets.TOKEN }} -source "GitHub"
     - run: dotnet build
     - run: dotnet test
-    - run: nuget pack
+    - run: nuget pack Git.Net/Git.Net.csproj
     - run: nuget push *.nupkg -Source "GitHub"
