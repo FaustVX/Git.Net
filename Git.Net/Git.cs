@@ -37,37 +37,31 @@ namespace Git.Net
 
         public static void Init(string? name = null)
         {
-            var startInfo = new ProcessStartInfo("git", $"init {name ?? ""}");
+            var startInfo = new ProcessStartInfo("git", Join("init", name));
             Process.Start(startInfo).WaitForExit();
         }
 
-        public static void Clone(string server, bool checkout = true)
+        public static void Clone(string server, bool checkout = true, string? branch = null, string? localDirectory = null)
         {
-            var startInfo = new ProcessStartInfo("git", $"clone{(checkout ? " " : " -n ")}{server}");
+            var startInfo = new ProcessStartInfo("git", Join("clone", checkout ? null : "-n", branch is string b ? $"-b {b}" : null, server, localDirectory));
             Process.Start(startInfo).WaitForExit();
         }
 
-        public static void Commit(string message, DateTime date)
+        public static void Commit(string message, DateTime? date = null)
         {
-            var startInfo = new ProcessStartInfo("git", $"commit -m \"{message}\" --allow-empty --date=\"{date.ToUniversalTime():R}\"");
-            Process.Start(startInfo).WaitForExit();
-        }
-
-        public static void Commit(string message)
-        {
-            var startInfo = new ProcessStartInfo("git", $"commit -m \"{message}\" --allow-empty");
+            var startInfo = new ProcessStartInfo("git", Join("commit", $"-m \"{message}\"", "--allow-empty", date is DateTime d ? $"--date=\"{d.ToUniversalTime():R}\"" : null));
             Process.Start(startInfo).WaitForExit();
         }
 
         public static void Push(string? server = null, string? local = null, bool force = false)
         {
-            var startInfo = new ProcessStartInfo("git", $"push --tags{(force ? " -f " : " ")}{server ?? "origin"} {local ?? "HEAD"}");
+            var startInfo = new ProcessStartInfo("git", Join($"push", "--tags", force ? "-f" : null, server ?? "origin", local ?? "HEAD"));
             Process.Start(startInfo).WaitForExit();
         }
 
         public static void AddTag(string label, bool force = false)
         {
-            var startInfo = new ProcessStartInfo("git", $"tag{(force ? " -f " : " ")}{label}");
+            var startInfo = new ProcessStartInfo("git", Join("tag", force ? "-f" : null, label));
             Process.Start(startInfo).WaitForExit();
         }
     }

@@ -42,5 +42,16 @@ namespace Git.Net.Test
                 Assert.IsNotNull(Git.GetLastCommit());
                 Git.AddTag("test");
             });
+
+        [TestMethod]
+        public void GitCloneAnotherBranch()
+            => Prepare(() =>
+            {
+                Git.Clone(@"https://github.com/FaustVX/FishShell.git", checkout: false, branch: "kodi", localDirectory: "Repo");
+                System.Environment.CurrentDirectory = new System.IO.DirectoryInfo("Repo").FullName;
+                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
+                Assert.IsNotNull(Git.GetLastCommit());
+                Git.AddTag("test");
+            });
     }
 }
