@@ -1,10 +1,18 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Git.Net
 {
     public static class Git
     {
+        public static string Join(this IEnumerable<string?> list, string separator = " ")
+            => string.Join(separator, list.Where(s => s is string));
+
+        public static string Join(params string?[] list)
+            => list.Join(" ");
+
         public static string? GetLastCommit()
         {
             string? lastVersion = null;
