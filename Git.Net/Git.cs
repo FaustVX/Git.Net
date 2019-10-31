@@ -139,8 +139,12 @@ namespace Git.Net
             => GetProcessStartInfo("push", tags.IsTrue("--tags"), force.IsTrue("-f"), setUpstream.IsTrue("-u"), server, local)
                 .StartAndWaitForExit();
 
-        public static void AddTag(string label, bool force = false)
-            => GetProcessStartInfo("tag", force.IsTrue("-f"), label)
+        public static void Tag(string label, bool force = false, bool delete = false)
+            => GetProcessStartInfo("tag", force.IsTrue("-f"), delete.IsTrue("-d"), label)
+                .StartAndWaitForExit();
+
+        public static void Tag(string label, string message, bool force = false)
+            => GetProcessStartInfo("tag", force.IsTrue("-f"), $"-m {message}", label)
                 .StartAndWaitForExit();
     }
 }
