@@ -65,5 +65,23 @@ namespace Git.Net.Test
                 Assert.IsNotNull(Git.GetLastCommit());
                 Assert.ThrowsException<System.Runtime.CompilerServices.SwitchExpressionException>(() => Git.Reset(0x1bcacd6, (Git.ResetMode)10));
             });
+
+        [TestMethod]
+        public void Ref()
+        {
+            Assert.AreEqual("HEAD~1", new Git.Ref(^1).ToString());
+
+            Assert.AreEqual("ref", new Git.Ref("ref").ToString());
+            Assert.AreEqual("ref", new Git.Ref(^0, "ref").ToString());
+            Assert.AreEqual("ref~1", new Git.Ref(^1, "ref").ToString());
+            
+            Assert.AreEqual("254fde", new Git.Ref(0x254fde).ToString());
+            Assert.AreEqual("254fde", new Git.Ref(^0, 0x254fde).ToString());
+            Assert.AreEqual("254fde~1", new Git.Ref(^1, 0x254fde).ToString());
+            
+            Assert.AreEqual("254fde25f", new Git.Ref(0x254fde25fL).ToString());
+            Assert.AreEqual("254fde25f", new Git.Ref(^0, 0x254fde25fL).ToString());
+            Assert.AreEqual("254fde25f~1", new Git.Ref(^1, 0x254fde25fL).ToString());
+        }
     }
 }

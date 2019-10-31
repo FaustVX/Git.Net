@@ -5,9 +5,8 @@ using System.Linq;
 
 namespace Git.Net
 {
-    public static class Git
+    public static partial class Git
     {
-        
 #region Helper
 
         public static string Join(this IEnumerable<string?> list, string separator = " ")
@@ -112,33 +111,7 @@ namespace Git.Net
             };
         }
 
-        ///<summary>Use the '^1' form</summary>
-        ///<param name="indexFrom">Use the '^1' form</param>
-        ///<param name="ref">tag/branch/commit</param>
-        public static void Reset(Index indexFrom, string @ref, ResetMode mode = ResetMode.None)
-            => GetProcessStartInfo("reset", mode.ToParameter(), $"{@ref ?? "HEAD"}~{indexFrom.Value}")
-                .StartAndWaitForExit();
-
-        ///<summary>Use the '^1' form</summary>
-        ///<param name="indexFromHEAD">Use the '^1' form</param>
-        public static void Reset(Index indexFromHEAD, ResetMode mode = ResetMode.None)
-            => Reset(indexFromHEAD, "HEAD", mode);
-
-        ///<summary>Use the '0x14ab250' form, up to 0x7fffffff</summary>
-        ///<param name="sha1Commit">Use the '0x14ab250' form, up to 0x7fffffff</param>
-        public static void Reset(int sha1Commit, ResetMode mode = ResetMode.None)
-            => GetProcessStartInfo("reset", mode.ToParameter(), $"{sha1Commit:x}")
-                .StartAndWaitForExit();
-
-        ///<summary>Use the '0x14ab250uL' form, up to 16 digits</summary>
-        ///<param name="sha1Commit">Use the '0x14ab250uL' form, up to 16 digits</param>
-        public static void Reset(ulong sha1Commit, ResetMode mode = ResetMode.None)
-            => GetProcessStartInfo("reset", mode.ToParameter(), $"{sha1Commit:x}")
-                .StartAndWaitForExit();
-
-        ///<summary>tag/branch/commit</summary>
-        ///<param name="ref">tag/branch/commit</param>
-        public static void Reset(string @ref, ResetMode mode = ResetMode.None)
+        public static void Reset(Ref @ref, ResetMode mode = ResetMode.None)
             => GetProcessStartInfo("reset", mode.ToParameter(), @ref)
                 .StartAndWaitForExit();
         
