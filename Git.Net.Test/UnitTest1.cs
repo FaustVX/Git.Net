@@ -14,6 +14,16 @@ namespace Git.Net.Test
             action();
         }
 
+        private static void AssertLastCommit(bool isNotNull = true)
+        {
+            var msg = Git.GetLastCommit();
+            System.Console.WriteLine(msg ?? "null");
+            if (isNotNull)
+                Assert.IsNotNull(msg);
+            else
+                Assert.IsNull(msg);
+        }
+
         [TestMethod]
         public void GitInit()
             => Prepare(() => Git.Init());
@@ -37,8 +47,7 @@ namespace Git.Net.Test
             => Prepare(() =>
             {
                 Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
-                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
-                Assert.IsNotNull(Git.GetLastCommit());
+                AssertLastCommit();
             });
 
         [TestMethod]
@@ -46,8 +55,7 @@ namespace Git.Net.Test
             => Prepare(() =>
             {
                 Git.Clone(@"https://github.com/FaustVX/FishShell.git", checkout: false, branch: "kodi", localDirectory: ".");
-                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
-                Assert.IsNotNull(Git.GetLastCommit());
+                AssertLastCommit();
             });
 
         [TestMethod]
@@ -55,14 +63,11 @@ namespace Git.Net.Test
             => Prepare(() =>
             {
                 Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
-                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
-                Assert.IsNotNull(Git.GetLastCommit());
+                AssertLastCommit();
                 Git.Reset(^1, Git.ResetMode.Hard);
-                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
-                Assert.IsNotNull(Git.GetLastCommit());
+                AssertLastCommit();
                 Git.Reset(0x1bcacd64e9c5464auL, Git.ResetMode.Hard);
-                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
-                Assert.IsNotNull(Git.GetLastCommit());
+                AssertLastCommit();
                 Assert.ThrowsException<System.Runtime.CompilerServices.SwitchExpressionException>(() => Git.Reset(0x1bcacd6, (Git.ResetMode)10));
             });
 
