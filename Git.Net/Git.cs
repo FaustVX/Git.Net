@@ -7,6 +7,29 @@ namespace Git.Net
 {
     public static class Git
     {
+        public enum ResetMode
+        {
+            None,
+            Soft,
+            Mixed,
+            Hard,
+            Merge,
+            Keep
+        }
+
+        private static string? ToParameter(this ResetMode mode)
+        {
+            return mode switch
+            {
+                ResetMode.None => null,
+                ResetMode.Soft => "--soft",
+                ResetMode.Mixed => "--mixed",
+                ResetMode.Hard => "--hard",
+                ResetMode.Merge => "--merge",
+                ResetMode.Keep => "--keep"
+            };
+        }
+
         public static string Join(this IEnumerable<string?> list, string separator = " ")
             => string.Join(separator, list.Where(s => s is string));
 
@@ -15,7 +38,7 @@ namespace Git.Net
 
         public static string Join(params string?[] list)
             => list.Join(" ");
-        
+
         private static ProcessStartInfo GetProcessStartInfo(string command, params string?[] parameters)
             => GetProcessStartInfo(command, Join(parameters));
 
@@ -28,15 +51,15 @@ namespace Git.Net
         private static T? IsTrue<T>(this bool b, T @true)
             where T : class
             => b ? @true : default;
-        
+
         private static T? IsFalse<T>(this bool b, T @false)
             where T : class
             => b ? default : @false;
-        
+
         private static string? IsNotNull<T>(this T? @this, string format)
             where T : class
             => @this is T t ? string.Format(format, t) : default;
-        
+
         private static string? IsNotNull<T>(this T? @this, string format)
             where T : struct
             => @this is T t ? string.Format(format, t) : default;
@@ -72,6 +95,40 @@ namespace Git.Net
 
         public static void Commit(string message, DateTime? date = null)
             => GetProcessStartInfo("commit", $"-m \"{message}\"", "--allow-empty", (date?.ToUniversalTime()).IsNotNull("--date=\"{0:R}\""))
+                .StartAndWaitForExit();
+
+        ///<summary>Use the '^1' form</summary>
+        ///<param name="indexFrom">Use the '^1' form</param>
+        ///<param name="ref">tag/branch/commit</param>
+        public static void Reset(Index indexFrom, string @ref, ResetMode mode = ResetMode.None)
+            => GetProcessStartInfo("reset", mode.ToParameter(), $"{@ref ?? "HEAD"}~{indexFrom.Value}")
+                .StartAndWaitForExit();
+
+        ///<summary>Use the '^1' form</summary>
+        ///<param name="indexFromHEAD">Use the '^1' form</param>
+        public static void Reset(Index indexFromHEAD, ResetMode mode = ResetMode.None)
+            => Reset(indexFromHEAD, "HEAD", mode);
+
+        ///<summary>Use the '0x14ab250' form, up to 0x7fffffff</summary>
+        ///<param name="sha1Commit">Use the '0x14ab250' form, up to 0x7fffffff</param>
+        public static void Reset(int sha1Commit, ResetMode mode = ResetMode.None)
+            => GetProcessStartInfo("reset", mode.ToParameter(), $"{sha1Commit:x}")
+                .StartAndWaitForExit();
+
+        ///<summary>Use the '0x14ab250uL' form, up to 16 digits</summary>
+        ///<param name="sha1Commit">Use the '0x14ab250uL' form, up to 16 digits</param>
+        public static void Reset(ulong sha1Commit, ResetMode mode = ResetMode.None)
+            => GetProcessStartInfo("reset", mode.ToParameter(), $"{sha1Commit:x}")
+                .StartAndWaitForExit();
+
+        ///<summary>tag/branch/commit</summary>
+        ///<param name="ref">tag/branch/commit</param>
+        public static void Reset(string @ref, ResetMode mode = ResetMode.None)
+            => GetProcessStartInfo("reset", mode.ToParameter(), @ref)
+                .StartAndWaitForExit();
+        
+        public static void Reset(params string[] files)
+            => GetProcessStartInfo("reset --", files)
                 .StartAndWaitForExit();
 
         public static void Push(string? server = null, string? local = null, bool force = false)

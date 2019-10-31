@@ -36,22 +36,34 @@ namespace Git.Net.Test
         public void GitClone()
             => Prepare(() =>
             {
-                Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: "Repo");
-                System.Environment.CurrentDirectory = new System.IO.DirectoryInfo("Repo").FullName;
+                Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
                 System.Console.WriteLine(Git.GetLastCommit() ?? "null");
                 Assert.IsNotNull(Git.GetLastCommit());
-                Git.AddTag("test");
             });
 
         [TestMethod]
         public void GitCloneAnotherBranch()
             => Prepare(() =>
             {
-                Git.Clone(@"https://github.com/FaustVX/FishShell.git", checkout: false, branch: "kodi", localDirectory: "Repo");
-                System.Environment.CurrentDirectory = new System.IO.DirectoryInfo("Repo").FullName;
+                Git.Clone(@"https://github.com/FaustVX/FishShell.git", checkout: false, branch: "kodi", localDirectory: ".");
                 System.Console.WriteLine(Git.GetLastCommit() ?? "null");
                 Assert.IsNotNull(Git.GetLastCommit());
-                Git.AddTag("test");
+            });
+
+        [TestMethod]
+        public void GitReset()
+            => Prepare(() =>
+            {
+                Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
+                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
+                Assert.IsNotNull(Git.GetLastCommit());
+                Git.Reset(^1, Git.ResetMode.Hard);
+                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
+                Assert.IsNotNull(Git.GetLastCommit());
+                Git.Reset(0x1bcacd64e9c5464auL, Git.ResetMode.Hard);
+                System.Console.WriteLine(Git.GetLastCommit() ?? "null");
+                Assert.IsNotNull(Git.GetLastCommit());
+                Assert.ThrowsException<System.Runtime.CompilerServices.SwitchExpressionException>(() => Git.Reset(0x1bcacd6, (Git.ResetMode)10));
             });
     }
 }
