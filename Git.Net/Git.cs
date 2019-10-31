@@ -81,8 +81,12 @@ namespace Git.Net
             return lastVersion;
         }
 
-        public static void AddAll()
-            => GetProcessStartInfo("add", ".")
+        public static void Add(bool all = true)
+            => GetProcessStartInfo("add", all.IsTrue("."))
+                .StartAndWaitForExit();
+
+        public static void Add(params string[] files)
+            => GetProcessStartInfo("add", files)
                 .StartAndWaitForExit();
 
         public static void Init(string? name = null)
