@@ -7,28 +7,8 @@ namespace Git.Net
 {
     public static class Git
     {
-        public enum ResetMode
-        {
-            None,
-            Soft,
-            Mixed,
-            Hard,
-            Merge,
-            Keep
-        }
-
-        private static string? ToParameter(this ResetMode mode)
-        {
-            return mode switch
-            {
-                ResetMode.None => null,
-                ResetMode.Soft => "--soft",
-                ResetMode.Mixed => "--mixed",
-                ResetMode.Hard => "--hard",
-                ResetMode.Merge => "--merge",
-                ResetMode.Keep => "--keep"
-            };
-        }
+        
+#region Helper
 
         public static string Join(this IEnumerable<string?> list, string separator = " ")
             => string.Join(separator, list.Where(s => s is string));
@@ -64,6 +44,8 @@ namespace Git.Net
             where T : struct
             => @this is T t ? string.Format(format, t) : default;
 
+#endregion
+
         public static string? GetLastCommit()
         {
             string? lastVersion = null;
@@ -81,13 +63,17 @@ namespace Git.Net
             return lastVersion;
         }
 
-        public static void Add(bool all = true)
+#region Add
+
+            public static void Add(bool all = true)
             => GetProcessStartInfo("add", all.IsTrue("."))
                 .StartAndWaitForExit();
 
         public static void Add(params string[] files)
             => GetProcessStartInfo("add", files)
                 .StartAndWaitForExit();
+
+#endregion
 
         public static void Init(string? name = null)
             => GetProcessStartInfo("init", name)
@@ -100,6 +86,31 @@ namespace Git.Net
         public static void Commit(string message, DateTime? date = null)
             => GetProcessStartInfo("commit", $"-m \"{message}\"", "--allow-empty", (date?.ToUniversalTime()).IsNotNull("--date=\"{0:R}\""))
                 .StartAndWaitForExit();
+
+#region Reset
+
+        public enum ResetMode
+        {
+            None,
+            Soft,
+            Mixed,
+            Hard,
+            Merge,
+            Keep
+        }
+
+        private static string? ToParameter(this ResetMode mode)
+        {
+            return mode switch
+            {
+                ResetMode.None => null,
+                ResetMode.Soft => "--soft",
+                ResetMode.Mixed => "--mixed",
+                ResetMode.Hard => "--hard",
+                ResetMode.Merge => "--merge",
+                ResetMode.Keep => "--keep"
+            };
+        }
 
         ///<summary>Use the '^1' form</summary>
         ///<param name="indexFrom">Use the '^1' form</param>
@@ -135,6 +146,10 @@ namespace Git.Net
             => GetProcessStartInfo("reset --", files)
                 .StartAndWaitForExit();
 
+#endregion
+
+#region Push
+
         public static void Push(bool tags = false, bool force = false, string? server = null, string? local = null)
             => GetProcessStartInfo("push", tags.IsTrue("--tags"), force.IsTrue("-f"), server, local)
                 .StartAndWaitForExit();
@@ -143,6 +158,10 @@ namespace Git.Net
             => GetProcessStartInfo("push", tags.IsTrue("--tags"), force.IsTrue("-f"), setUpstream.IsTrue("-u"), server, local)
                 .StartAndWaitForExit();
 
+#endregion
+
+#region Tag
+
         public static void Tag(string label, bool force = false, bool delete = false)
             => GetProcessStartInfo("tag", force.IsTrue("-f"), delete.IsTrue("-d"), label)
                 .StartAndWaitForExit();
@@ -150,5 +169,7 @@ namespace Git.Net
         public static void Tag(string label, string message, bool force = false)
             => GetProcessStartInfo("tag", force.IsTrue("-f"), $"-m {message}", label)
                 .StartAndWaitForExit();
+
+#endregion
     }
 }
