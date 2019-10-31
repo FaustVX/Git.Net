@@ -10,13 +10,42 @@ namespace Git.Net
         public static string Join(this IEnumerable<string?> list, string separator = " ")
             => string.Join(separator, list.Where(s => s is string));
 
+        public static string Join(string?[] list1, bool switchListsOrder = false, params string?[] list2)
+            => (switchListsOrder ? list2 : list1).Concat(switchListsOrder ? list1 : list2).Join(" ");
+
         public static string Join(params string?[] list)
             => list.Join(" ");
+        
+        private static ProcessStartInfo GetProcessStartInfo(string command, params string?[] parameters)
+            => GetProcessStartInfo(command, Join(parameters));
+
+        private static ProcessStartInfo GetProcessStartInfo(string command, string? parameters)
+            => new ProcessStartInfo("git", command + (parameters is string p ? $" {p}" : ""));
+
+        private static void StartAndWaitForExit(this ProcessStartInfo startInfo)
+            => Process.Start(startInfo).WaitForExit();
+
+        private static T? IsTrue<T>(this bool b, T @true)
+            where T : class
+            => b ? @true : default;
+        
+        private static T? IsFalse<T>(this bool b, T @false)
+            where T : class
+            => b ? default : @false;
+        
+        private static string? IsNotNull<T>(this T? @this, string format)
+            where T : class
+            => @this is T t ? string.Format(format, t) : default;
+        
+        private static string? IsNotNull<T>(this T? @this, string format)
+            where T : struct
+            => @this is T t ? string.Format(format, t) : default;
 
         public static string? GetLastCommit()
         {
             string? lastVersion = null;
-            var startInfoLog = new ProcessStartInfo("git", "log -1 --oneline --no-decorate") { RedirectStandardOutput = true };
+            var startInfoLog = GetProcessStartInfo("log", "-1", "--oneline", "--no-decorate");
+            startInfoLog.RedirectStandardOutput = true;
             using var processLog = new Process() { StartInfo = startInfoLog };
             processLog.OutputDataReceived += (s, e) =>
             {
@@ -30,39 +59,27 @@ namespace Git.Net
         }
 
         public static void AddAll()
-        {
-            var startInfo = new ProcessStartInfo("git", "add .");
-            Process.Start(startInfo).WaitForExit();
-        }
+            => GetProcessStartInfo("add", ".")
+                .StartAndWaitForExit();
 
         public static void Init(string? name = null)
-        {
-            var startInfo = new ProcessStartInfo("git", Join("init", name));
-            Process.Start(startInfo).WaitForExit();
-        }
+            => GetProcessStartInfo("init", name)
+                .StartAndWaitForExit();
 
         public static void Clone(string server, bool checkout = true, string? branch = null, string? localDirectory = null)
-        {
-            var startInfo = new ProcessStartInfo("git", Join("clone", checkout ? null : "-n", branch is string b ? $"-b {b}" : null, server, localDirectory));
-            Process.Start(startInfo).WaitForExit();
-        }
+            => GetProcessStartInfo("clone", checkout.IsFalse("-n"), branch.IsNotNull("-b {0}"), server, localDirectory)
+                .StartAndWaitForExit();
 
         public static void Commit(string message, DateTime? date = null)
-        {
-            var startInfo = new ProcessStartInfo("git", Join("commit", $"-m \"{message}\"", "--allow-empty", date is DateTime d ? $"--date=\"{d.ToUniversalTime():R}\"" : null));
-            Process.Start(startInfo).WaitForExit();
-        }
+            => GetProcessStartInfo("commit", $"-m \"{message}\"", "--allow-empty", (date?.ToUniversalTime()).IsNotNull("--date=\"{0:R}\""))
+                .StartAndWaitForExit();
 
         public static void Push(string? server = null, string? local = null, bool force = false)
-        {
-            var startInfo = new ProcessStartInfo("git", Join($"push", "--tags", force ? "-f" : null, server ?? "origin", local ?? "HEAD"));
-            Process.Start(startInfo).WaitForExit();
-        }
+            => GetProcessStartInfo("push", "--tags", force.IsTrue("-f"), server ?? "origin", local ?? "HEAD")
+                .StartAndWaitForExit();
 
         public static void AddTag(string label, bool force = false)
-        {
-            var startInfo = new ProcessStartInfo("git", Join("tag", force ? "-f" : null, label));
-            Process.Start(startInfo).WaitForExit();
-        }
+            => GetProcessStartInfo("tag", force.IsTrue("-f"), label)
+                .StartAndWaitForExit();
     }
 }

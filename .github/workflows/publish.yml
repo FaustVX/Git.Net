@@ -2,8 +2,7 @@ name: publishNugetPackage
 
 on:
   push:
-    paths-ignore:
-    - 'Git.Net.Test/**'
+    paths: Git.Net/.nuspec
 
 jobs:
   publish:
