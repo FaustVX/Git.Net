@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -24,8 +24,12 @@ namespace Git.Net
         private static ProcessStartInfo GetProcessStartInfo(string command, string? parameters)
             => new ProcessStartInfo("git", command + (parameters is string p ? $" {p}" : ""));
 
-        private static void StartAndWaitForExit(this ProcessStartInfo startInfo)
-            => Process.Start(startInfo).WaitForExit();
+        private static ExitCode StartAndWaitForExit(this ProcessStartInfo startInfo)
+        {
+            Process process = Process.Start(startInfo);
+            process.WaitForExit();
+            return process.ExitCode;
+        }
 
         private static T? IsTrue<T>(this bool b, T @true)
             where T : class
@@ -64,25 +68,25 @@ namespace Git.Net
 
 #region Add
 
-            public static void Add(bool all = true)
+            public static ExitCode Add(bool all = true)
             => GetProcessStartInfo("add", all.IsTrue("."))
                 .StartAndWaitForExit();
 
-        public static void Add(params string[] files)
+        public static ExitCode Add(params string[] files)
             => GetProcessStartInfo("add", files)
                 .StartAndWaitForExit();
 
 #endregion
 
-        public static void Init(string? name = null)
+        public static ExitCode Init(string? name = null)
             => GetProcessStartInfo("init", name)
                 .StartAndWaitForExit();
 
-        public static void Clone(string server, bool checkout = true, string? branch = null, string? localDirectory = null)
+        public static ExitCode Clone(string server, bool checkout = true, string? branch = null, string? localDirectory = null)
             => GetProcessStartInfo("clone", checkout.IsFalse("-n"), branch.IsNotNull("-b {0}"), server, localDirectory)
                 .StartAndWaitForExit();
 
-        public static void Commit(string message, DateTime? date = null)
+        public static ExitCode Commit(string message, DateTime? date = null)
             => GetProcessStartInfo("commit", $"-m \"{message}\"", "--allow-empty", (date?.ToUniversalTime()).IsNotNull("--date=\"{0:R}\""))
                 .StartAndWaitForExit();
 
@@ -111,11 +115,11 @@ namespace Git.Net
             };
         }
 
-        public static void Reset(Ref @ref, ResetMode mode = ResetMode.None)
+        public static ExitCode Reset(Ref @ref, ResetMode mode = ResetMode.None)
             => GetProcessStartInfo("reset", mode.ToParameter(), @ref)
                 .StartAndWaitForExit();
         
-        public static void Reset(params string[] files)
+        public static ExitCode Reset(params string[] files)
             => GetProcessStartInfo("reset --", files)
                 .StartAndWaitForExit();
 
@@ -123,11 +127,11 @@ namespace Git.Net
 
 #region Push
 
-        public static void Push(bool tags = false, bool force = false, string? server = null, string? local = null)
+        public static ExitCode Push(bool tags = false, bool force = false, string? server = null, string? local = null)
             => GetProcessStartInfo("push", tags.IsTrue("--tags"), force.IsTrue("-f"), server, local)
                 .StartAndWaitForExit();
 
-        public static void Push(string server, string local, bool setUpstream = false, bool tags = false, bool force = false)
+        public static ExitCode Push(string server, string local, bool setUpstream = false, bool tags = false, bool force = false)
             => GetProcessStartInfo("push", tags.IsTrue("--tags"), force.IsTrue("-f"), setUpstream.IsTrue("-u"), server, local)
                 .StartAndWaitForExit();
 
@@ -135,11 +139,11 @@ namespace Git.Net
 
 #region Tag
 
-        public static void Tag(string label, bool force = false, bool delete = false)
+        public static ExitCode Tag(string label, bool force = false, bool delete = false)
             => GetProcessStartInfo("tag", force.IsTrue("-f"), delete.IsTrue("-d"), label)
                 .StartAndWaitForExit();
 
-        public static void Tag(string label, string message, bool force = false)
+        public static ExitCode Tag(string label, string message, bool force = false)
             => GetProcessStartInfo("tag", force.IsTrue("-f"), $"-m {message}", label)
                 .StartAndWaitForExit();
 

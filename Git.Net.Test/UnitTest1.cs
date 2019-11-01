@@ -46,8 +46,12 @@ namespace Git.Net.Test
         public void GitClone()
             => Prepare(() =>
             {
-                Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
+                var exit = Git.Clone("");
+                System.Console.WriteLine(exit);
+                Assert.IsFalse(exit);
+                exit = Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
                 AssertLastCommit();
+                Assert.IsTrue(exit);
             });
 
         [TestMethod]
