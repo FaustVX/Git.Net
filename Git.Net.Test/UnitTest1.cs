@@ -8,10 +8,8 @@ namespace Git.Net.Test
     {
         private static void Prepare(System.Action action)
         {
-            using var dir = TemporaryDirectory.CreateTemporaryDirectory();
-            System.Console.WriteLine(dir);
-            System.Environment.CurrentDirectory = dir;
-            action();
+            using (TemporaryDirectory.CreateTemporaryDirectory(setCurrentDirectory: true))
+                action();
         }
 
         private static void AssertLastCommit(bool isNotNull = true)
