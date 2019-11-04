@@ -49,6 +49,7 @@ namespace Git.Net.Test
                 var exit = Git.Clone("");
                 System.Console.WriteLine(exit);
                 Assert.IsFalse(exit);
+                AssertLastCommit(false);
                 exit = Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
                 AssertLastCommit();
                 Assert.IsTrue(exit);

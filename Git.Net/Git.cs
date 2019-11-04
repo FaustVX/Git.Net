@@ -57,13 +57,13 @@ namespace Git.Net
             using var processLog = new Process() { StartInfo = startInfoLog };
             processLog.OutputDataReceived += (s, e) =>
             {
-                if (e.Data is string data && !data.StartsWith("fatal:"))
+                if (e.Data is string data)
                     lastVersion = data;
             };
             processLog.Start();
             processLog.BeginOutputReadLine();
             processLog.WaitForExit();
-            return lastVersion;
+            return ((ExitCode)processLog.ExitCode) ? lastVersion : null;
         }
 
 #region Add
