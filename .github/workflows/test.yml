@@ -14,5 +14,4 @@ jobs:
       run: |
         nuget sources Add -Name "GitHub" -Source "https://nuget.pkg.github.com/FaustVX/index.json" -UserName FaustVX -Password ${{ secrets.TOKEN }}
         nuget setApiKey ${{ secrets.TOKEN }} -source "GitHub"
-    - run: dotnet build
     - run: dotnet test

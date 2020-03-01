@@ -12,6 +12,7 @@
     <PackageId>Git.Net</PackageId>
     <Authors>FaustVX</Authors>
     <Product>Git.Net</Product>
+    <RepositoryUrl>https://github.com/FaustVX/Git.Net</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

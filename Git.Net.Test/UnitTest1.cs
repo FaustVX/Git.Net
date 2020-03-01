@@ -15,7 +15,6 @@ namespace Git.Net.Test
         private static void AssertLastCommit(bool isNotNull = true)
         {
             var msg = Git.GetLastCommit();
-            System.Console.WriteLine(msg ?? "null");
             if (isNotNull)
                 Assert.IsNotNull(msg);
             else
@@ -67,29 +66,53 @@ namespace Git.Net.Test
             {
                 Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: false, localDirectory: ".");
                 AssertLastCommit();
-                Git.Reset(^1, Git.ResetMode.Hard);
+                Git.Reset(^1, Git.ResetMode.Soft);
                 AssertLastCommit();
-                Git.Reset(0x1bcacd64e9c5464auL, Git.ResetMode.Hard);
+                Git.Reset(0x1bcacd64e9c5464auL, Git.ResetMode.Soft);
                 AssertLastCommit();
                 Assert.ThrowsException<System.Runtime.CompilerServices.SwitchExpressionException>(() => Git.Reset(0x1bcacd6, (Git.ResetMode)10));
+            });
+        
+        [TestMethod]
+        public void GitCommit()
+            => Prepare(() =>
+            {
+                Git.Clone(@"https://github.com/FaustVX/Git.Net.git", checkout: true, localDirectory: ".");
+                Git.StartConfig("FaustVX", "jodu035@gmail.com", local: true);
+                var lastCommit = Git.GetLastCommit().GetValueOrDefault();
+                AssertLastCommit();
+                using var temporaryFile = TemporaryFile.CreateTemporaryFile();
+                System.IO.File.WriteAllText(temporaryFile.FileInfo.FullName, "plop");
+                Git.Add();
+                Assert.IsTrue(Git.Commit("plop", out var commit));
+                Git.Reset(commit ^ 1, Git.ResetMode.Soft);
+                Assert.AreEqual(lastCommit, Git.GetLastCommit());
+                Assert.IsTrue(Git.Tag("test", commit ^ 1));
+                Assert.IsFalse(Git.Tag("test", commit^1));
             });
 
         [TestMethod]
         public void Ref()
         {
+            Assert.AreEqual("HEAD", default(Git.Ref).ToString());
             Assert.AreEqual("HEAD~1", new Git.Ref(^1).ToString());
+            Assert.AreEqual("HEAD~3", (new Git.Ref(^1) ^ 2).ToString());
 
             Assert.AreEqual("ref", new Git.Ref("ref").ToString());
             Assert.AreEqual("ref", new Git.Ref(^0, "ref").ToString());
             Assert.AreEqual("ref~1", new Git.Ref(^1, "ref").ToString());
+            Assert.AreEqual("ref~3", (new Git.Ref(^1, "ref") ^ 2).ToString());
             
             Assert.AreEqual("254fde", new Git.Ref(0x254fde).ToString());
             Assert.AreEqual("254fde", new Git.Ref(^0, 0x254fde).ToString());
             Assert.AreEqual("254fde~1", new Git.Ref(^1, 0x254fde).ToString());
+            Assert.AreEqual("254fde~3", (new Git.Ref(^1, 0x254fde) ^ 2).ToString());
             
             Assert.AreEqual("254fde25f", new Git.Ref(0x254fde25fL).ToString());
             Assert.AreEqual("254fde25f", new Git.Ref(^0, 0x254fde25fL).ToString());
             Assert.AreEqual("254fde25f~1", new Git.Ref(^1, 0x254fde25fL).ToString());
+            Assert.AreEqual("254fde25f~3", (new Git.Ref(^1, 0x254fde25fL) ^ 2).ToString());
+
         }
     }
 }

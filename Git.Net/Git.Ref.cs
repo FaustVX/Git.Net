@@ -6,6 +6,8 @@ namespace Git.Net
     {
         public readonly struct Ref
         {
+            public static Ref HEAD { get; } = default;
+
             private readonly Index _indexFrom;
 
             private readonly string _ref;
@@ -95,6 +97,14 @@ namespace Git.Net
                     (false, false, true) => $"{_sha1CommitULong:x}",
                 } + (_indexFrom is { Value: var offset } && offset > 0 ? $"~{offset}" : "");
             
+            public static Ref operator ^(Ref @ref, int indexFromRef)
+                => (@ref._fromRef, @ref._fromSha1Int, @ref._fromSha1ULong) switch
+                {
+                    (false, false, false) => new Ref(new Index(indexFromRef + @ref._indexFrom.Value, true)),
+                    (true, false, false) => new Ref(new Index(indexFromRef + @ref._indexFrom.Value, true), @ref._ref),
+                    (false, true, false) => new Ref(new Index(indexFromRef + @ref._indexFrom.Value, true), @ref._sha1CommitInt),
+                    (false, false, true) => new Ref(new Index(indexFromRef + @ref._indexFrom.Value, true), @ref._sha1CommitULong)
+                };
             
             public static implicit operator string(Ref @ref)
                 => @ref.ToString();
