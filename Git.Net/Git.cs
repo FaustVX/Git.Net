@@ -1,50 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using Proc = System.Diagnostics.Process;
 using System.Globalization;
-using System.IO;
-using System.Linq;
+using FaustVX.Process;
 
 namespace Git.Net
 {
     public static partial class Git
     {
 #region Helper
+        private static readonly Process.GetProcessStartInfo GetProcessStartInfo = Process.CreateProcess("git");
 
-        public static string Join(this IEnumerable<string?> list, string separator = " ")
-            => string.Join(separator, list.Where(s => s is string));
-
-        public static string Join(string?[] list1, bool switchListsOrder = false, params string?[] list2)
-            => (switchListsOrder ? list2 : list1).Concat(switchListsOrder ? list1 : list2).Join(" ");
-
-        public static string Join(params string?[] list)
-            => list.Join(" ");
-
-        private static ProcessStartInfo GetProcessStartInfo(string command, params string?[] parameters)
-            => GetProcessStartInfo(command, Join(parameters));
-
-        private static ProcessStartInfo GetProcessStartInfo(string command, string? parameters)
-            => new ProcessStartInfo("git", command + (parameters is string p ? $" {p}" : ""));
-
-        private static ExitCode StartAndWaitForExit(this ProcessStartInfo startInfo)
+        private static ExitCode WaitForExitAndGetLastCommit(this System.Diagnostics.ProcessStartInfo startInfo, out Ref @ref)
         {
-            Process process = Process.Start(startInfo);
-            process.WaitForExit();
-            return process.ExitCode;
-        }
-
-        private static ExitCode StartAndWaitForExit(this ProcessStartInfo startInfo, out StreamReader stdOut)
-        {
-            startInfo.RedirectStandardOutput = true;
-            Process process = Process.Start(startInfo);
-            stdOut = process.StandardOutput;
-            process.WaitForExit();
-            return process.ExitCode;
-        }
-
-        private static ExitCode WaitForExitAndGetLastCommit(this ProcessStartInfo startInfo, out Ref @ref)
-        {
-            var result = startInfo.StartAndWaitForExit(out var stdOut);
+            var result = startInfo.StartAndReadOutAndWaitForExit(out var stdOut);
 
             if(result)
             {
@@ -85,7 +53,7 @@ namespace Git.Net
             string? lastVersion = null;
             var startInfoLog = GetProcessStartInfo("log", "-1", "--oneline", "--no-decorate");
             startInfoLog.RedirectStandardOutput = true;
-            using var processLog = new Process() { StartInfo = startInfoLog };
+            using var processLog = new Proc() { StartInfo = startInfoLog };
             processLog.OutputDataReceived += (s, e) =>
             {
                 if (e.Data is string data)
